@@ -449,6 +449,7 @@ tr:hover td{background:#fdf9f3}
     <button class="tab" id="tab-orders" onclick="showPage(&#39;orders&#39;,this)">📦 Order Tracker</button>
     <button class="tab" id="tab-inquiries" onclick="showPage(&#39;inquiries&#39;,this)">📬 Vendor Inquiries</button>
     <button class="tab" id="tab-polog" onclick="showPage(&#39;polog&#39;,this)">📋 PO Log</button>
+    <button class="tab" id="tab-salvage" onclick="showPage(&#39;salvage&#39;,this)">♻️ Salvage</button>
     <button class="tab" id="tab-reports" onclick="showPage(&#39;reports&#39;,this)">📊 Reports</button>
     <button class="tab tab-new" onclick="newQuote()">🔄 New Quote</button>
     <button onclick="exportAllData()" style="margin-left:8px;padding:5px 11px;border-radius:5px 5px 0 0;border:1px solid #4a5a70;border-bottom:none;background:rgba(255,255,255,0.07);color:#9baab8;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap" title="Export all data to backup file">⬇️ Export</button>
@@ -476,7 +477,7 @@ tr:hover td{background:#fdf9f3}
             <div class="row">
               <div class="fg">
                 <label class="lbl">Category</label>
-                <select id="sel-cat" onchange="onCat()"><option value="">— Select —</option><option value="Composite Decking">Composite Decking</option><option value="Exterior">Exterior</option><option value="Exterior Doors">Exterior Doors</option><option value="Hardware">Hardware</option><option value="Interior">Interior</option><option value="Interior Doors">Interior Doors</option><option value="Lumber">Lumber</option><option value="Millwork">Millwork</option><option value="Siding">Siding</option><option value="TLC Exterior Doors">TLC Exterior Doors</option><option value="Windows">Windows</option></select>
+                <select id="sel-cat" onchange="onCat()"><option value="">— Select —</option><option value="Composite Decking">Composite Decking</option><option value="Exterior">Exterior</option><option value="Exterior Doors">Exterior Doors</option><option value="Hardware">Hardware</option><option value="Interior">Interior</option><option value="Interior Doors">Interior Doors</option><option value="Lumber">Lumber</option><option value="Millwork">Millwork</option><option value="Salvage">Salvage</option><option value="Siding">Siding</option><option value="TLC Exterior Doors">TLC Exterior Doors</option><option value="Windows">Windows</option></select>
               </div>
               <div class="fg">
                 <label class="lbl">Group</label>
@@ -1059,7 +1060,7 @@ tr:hover td{background:#fdf9f3}
     <div id="ci-catalog-fields" class="hidden" style="padding:10px;background:#f9f6f1;border-radius:6px;margin-bottom:12px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg"><label class="lbl">Category</label>
-          <select id="ci-cat"><option>Interior Doors</option><option>Exterior Doors</option><option>Lumber</option><option>Millwork</option><option>Special Orders</option><option>Other</option></select>
+          <select id="ci-cat"><option>Interior Doors</option><option>Exterior Doors</option><option>Lumber</option><option>Millwork</option><option>Salvage</option><option>Special Orders</option><option>Other</option></select>
         </div>
         <div class="fg"><label class="lbl">Group</label><input type="text" id="ci-group" placeholder="e.g. Fiberglass..."></div>
       </div>
@@ -1142,6 +1143,147 @@ tr:hover td{background:#fdf9f3}
         <button onclick="saveInquiryOnly()" style="padding:9px 20px;border-radius:6px;border:none;background:#8B6914;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Save Only</button>
         <button onclick="sendInquiryEmails()" style="padding:9px 24px;border-radius:6px;border:none;background:#2980d4;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Send Emails</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- SALVAGE INVENTORY PAGE -->
+<div id="page-salvage" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:3px">♻️ Salvage Inventory</h2>
+      <p style="color:#6b5a3a;font-size:13px" id="salvage-summary">0 items</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="openSalvageScanner()" style="background:#2980d4;color:#fff;padding:8px 18px;border-radius:5px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:inherit">📷 Scan Item</button>
+      <button onclick="openSalvageManual()" style="background:#2d6a30;color:#fff;padding:8px 18px;border-radius:5px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:inherit">+ Add Manually</button>
+      <button onclick="exportSalvageCSV()" style="background:#5c3a8a;color:#fff;padding:8px 14px;border-radius:5px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit">⬇️ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Filter pills -->
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap" id="salvage-pills">
+    <button class="pill on" onclick="setSalvageFilter('All',this)">All</button>
+    <button class="pill off" onclick="setSalvageFilter('Doors',this)">Doors</button>
+    <button class="pill off" onclick="setSalvageFilter('Lumber',this)">Lumber</button>
+    <button class="pill off" onclick="setSalvageFilter('Millwork',this)">Millwork</button>
+    <button class="pill off" onclick="setSalvageFilter('Hardware',this)">Hardware</button>
+    <button class="pill off" onclick="setSalvageFilter('Plywood/Sheet',this)">Plywood/Sheet</button>
+    <button class="pill off" onclick="setSalvageFilter('Misc',this)">Misc</button>
+  </div>
+
+  <!-- Status filter -->
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <select id="salvage-status-filter" onchange="renderSalvageList()" style="padding:7px 12px;border-radius:5px;border:1.5px solid #d5c8a8;font-size:13px;font-family:inherit;outline:none;background:#fff">
+      <option value="active">Active</option>
+      <option value="sold">Sold</option>
+      <option value="all">All</option>
+    </select>
+    <input id="salvage-search" placeholder="Search salvage items..." oninput="renderSalvageList()" style="flex:1;padding:7px 12px;border-radius:5px;border:1.5px solid #d5c8a8;font-size:13px;font-family:inherit;outline:none;background:#fff">
+  </div>
+
+  <!-- KPI strip -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="salvage-kpis"></div>
+
+  <!-- Salvage items list -->
+  <div class="panel">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:#1a2438;color:#fff">
+          <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;width:50px">Photo</th>
+          <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase">Description</th>
+          <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;width:70px">Category</th>
+          <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;width:65px">Condition</th>
+          <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;width:50px">Qty</th>
+          <th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;width:70px">Cost</th>
+          <th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;width:70px">Price</th>
+          <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;width:50px">GM%</th>
+          <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;width:80px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="salvage-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SALVAGE SCANNER MODAL -->
+<div id="salvage-scanner-modal" class="modal-bg hidden" onclick="if(event.target===this)closeSalvageScanner()">
+  <div class="modal" style="max-width:500px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:17px;font-weight:700;color:#1a1008">📷 Scan Salvage Item</div>
+      <button onclick="closeSalvageScanner()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b5a3a">✕</button>
+    </div>
+
+    <!-- Camera Zone -->
+    <div id="salvage-cam-zone" style="border:2.5px dashed #d5c8a8;border-radius:10px;padding:30px 16px;text-align:center;margin-bottom:14px;cursor:pointer;background:#faf8f4;transition:all .15s" onclick="document.getElementById('salvage-cam-input').click()">
+      <div id="salvage-cam-preview" style="display:none;margin-bottom:10px"></div>
+      <div id="salvage-cam-prompt">
+        <div style="font-size:36px;margin-bottom:6px">📸</div>
+        <div style="font-size:14px;font-weight:600;color:#1a2438">Tap to take a photo</div>
+        <div style="font-size:11px;color:#a89060;margin-top:4px">or select from gallery</div>
+      </div>
+      <input type="file" id="salvage-cam-input" accept="image/*" capture="environment" style="display:none" onchange="onSalvagePhoto(this)">
+    </div>
+
+    <!-- AI Identify Button -->
+    <button id="salvage-ai-btn" onclick="aiIdentifySalvage()" disabled style="width:100%;padding:12px;border-radius:6px;border:none;background:#ccc;color:#fff;font-size:14px;font-weight:700;cursor:not-allowed;font-family:inherit;margin-bottom:14px">🤖 Identify & Price This Item</button>
+    <div id="salvage-ai-status" style="display:none;text-align:center;padding:8px;font-size:12px;color:#2980d4;margin-bottom:10px"></div>
+
+    <!-- Result Fields -->
+    <div id="salvage-result-fields">
+      <div class="fg" style="margin-bottom:10px">
+        <label class="lbl">Description *</label>
+        <input type="text" id="sv-desc" placeholder="What is this item?">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="fg">
+          <label class="lbl">Category</label>
+          <select id="sv-cat" style="width:100%">
+            <option>Doors</option><option>Lumber</option><option>Millwork</option><option>Hardware</option><option>Plywood/Sheet</option><option>Misc</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Condition</label>
+          <select id="sv-cond" style="width:100%">
+            <option>New</option><option>Good</option><option>Fair</option><option>Rough</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="fg"><label class="lbl">Qty</label><input type="number" id="sv-qty" value="1" min="1" style="text-align:center"></div>
+        <div class="fg"><label class="lbl">Your Cost $</label><input type="number" id="sv-cost" min="0" step="0.01" placeholder="0.00" oninput="updateSalvageGM()"></div>
+        <div class="fg"><label class="lbl">Sell Price $</label><input type="number" id="sv-price" min="0" step="0.01" placeholder="0.00" oninput="updateSalvageGM()"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div id="sv-gm-display" style="font-size:12px;font-weight:700;color:#2d6a30;background:#eaf3de;padding:4px 10px;border-radius:4px">GM: —</div>
+        <div class="fg" style="flex:1"><label class="lbl">Location</label><input type="text" id="sv-location" placeholder="e.g. Yard Bay 3"></div>
+      </div>
+      <div class="fg" style="margin-bottom:14px">
+        <label class="lbl">Notes</label>
+        <input type="text" id="sv-notes" placeholder="Damage, origin, special info...">
+      </div>
+    </div>
+
+    <!-- Save buttons -->
+    <div style="display:flex;gap:8px">
+      <button onclick="closeSalvageScanner()" style="flex:1;padding:10px;border-radius:5px;border:1.5px solid #d5c8a8;background:#fff;color:#6b5a3a;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+      <button onclick="saveSalvageItem()" style="flex:2;padding:10px;border-radius:5px;border:none;background:#2d6a30;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">💾 Save Salvage Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- SALVAGE API KEY SETUP (one-time) -->
+<div id="salvage-apikey-modal" class="modal-bg hidden" onclick="if(event.target===this)document.getElementById('salvage-apikey-modal').classList.add('hidden')">
+  <div class="modal" style="max-width:440px">
+    <div style="font-size:17px;font-weight:700;color:#1a1008;margin-bottom:6px">🔑 AI Setup</div>
+    <div style="font-size:12px;color:#6b5a3a;margin-bottom:14px;line-height:1.6">To use AI item identification, enter your Claude API key. This is stored only in your browser — never sent anywhere except Anthropic's API.</div>
+    <div class="fg" style="margin-bottom:14px">
+      <label class="lbl">Anthropic API Key</label>
+      <input type="password" id="sv-apikey-input" placeholder="sk-ant-..." style="font-family:monospace">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('salvage-apikey-modal').classList.add('hidden')" class="btn btn-gh">Cancel</button>
+      <button onclick="saveSalvageAPIKey()" style="padding:8px 20px;border-radius:5px;border:none;background:#2980d4;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Save Key</button>
     </div>
   </div>
 </div>
@@ -2391,6 +2533,7 @@ function showPage(name, btn) {
   if(name==='reports') { renderReports(); renderSalesLog(); }
   if(name==='orders') renderOrderTracker();
   if(name==='inquiries') renderInquiries();
+  if(name==='salvage') renderSalvageList();
 }
 function showView(id) {
   ['quote-view','print-view','invoice-view','po-view'].forEach(v => {
@@ -3900,6 +4043,8 @@ function exportAllData() {
     ns_reorder_pts: JSON.parse(localStorage.getItem('ns_reorder_pts') || '{}'),
     ns_po_log: JSON.parse(localStorage.getItem('ns_po_log') || '[]'),
     ns_order_meta: JSON.parse(localStorage.getItem('ns_order_meta') || '{}'),
+    ns_salvage: JSON.parse(localStorage.getItem('ns_salvage') || '[]'),
+    ns_salvage_apikey: localStorage.getItem('ns_salvage_apikey') || '',
   };
 
   var json = JSON.stringify(data, null, 2);
@@ -3978,6 +4123,8 @@ function importAllData(input) {
         if(data.ns_reorder_pts) localStorage.setItem('ns_reorder_pts', JSON.stringify(data.ns_reorder_pts));
         if(data.ns_po_log) localStorage.setItem('ns_po_log', JSON.stringify(data.ns_po_log));
         if(data.ns_order_meta) localStorage.setItem('ns_order_meta', JSON.stringify(data.ns_order_meta));
+        if(data.ns_salvage) localStorage.setItem('ns_salvage', JSON.stringify(data.ns_salvage));
+        if(data.ns_salvage_apikey) localStorage.setItem('ns_salvage_apikey', data.ns_salvage_apikey);
 
         // Update invoice/PO counters in memory
         invCounter = parseInt(data.ns_inv_counter) || invCounter;
@@ -5715,6 +5862,324 @@ function closeLightbox() {
   document.body.style.overflow='';
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape') closeLightbox();});
+
+
+// ── SALVAGE INVENTORY ──────────────────────────────────────────────────────────
+var salvageItems = JSON.parse(localStorage.getItem('ns_salvage') || '[]');
+var salvageCatFilter = 'All';
+var currentSalvagePhoto = null; // base64
+
+function renderSalvageList() {
+  var filter = salvageCatFilter;
+  var statusFilter = document.getElementById('salvage-status-filter').value;
+  var search = (document.getElementById('salvage-search').value || '').toLowerCase();
+  var items = salvageItems.filter(function(it) {
+    if (filter !== 'All' && it.category !== filter) return false;
+    if (statusFilter === 'active' && it.sold) return false;
+    if (statusFilter === 'sold' && !it.sold) return false;
+    if (search && !(it.description || '').toLowerCase().includes(search) && !(it.category || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  var tbody = document.getElementById('salvage-tbody');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#a89060;font-size:13px">No salvage items found. Tap "📷 Scan Item" or "+ Add Manually" to get started.</td></tr>';
+  } else {
+    tbody.innerHTML = items.map(function(it) {
+      var gm = it.price > 0 && it.cost >= 0 ? Math.round((1 - it.cost / it.price) * 100) : 0;
+      var condColor = it.condition === 'New' ? '#2d6a30' : it.condition === 'Good' ? '#2980d4' : it.condition === 'Fair' ? '#8B6914' : '#c04040';
+      var thumb = it.thumbnail ? '<img src="' + it.thumbnail + '" style="width:40px;height:40px;object-fit:cover;border-radius:4px">' : '<div style="width:40px;height:40px;background:#f0e8d8;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>';
+      var soldBadge = it.sold ? '<span style="background:#eaf3de;color:#2d6a30;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;margin-left:4px">SOLD</span>' : '';
+      return '<tr>' +
+        '<td>' + thumb + '</td>' +
+        '<td><div style="font-weight:600;font-size:12px">' + (it.description || '—') + soldBadge + '</div>' + (it.location ? '<div style="font-size:10px;color:#a89060">' + it.location + '</div>' : '') + '</td>' +
+        '<td style="text-align:center;font-size:11px">' + (it.category || '') + '</td>' +
+        '<td style="text-align:center"><span style="color:' + condColor + ';font-size:11px;font-weight:600">' + (it.condition || '') + '</span></td>' +
+        '<td style="text-align:center;font-weight:600">' + (it.qty || 1) + '</td>' +
+        '<td style="text-align:right;font-size:12px">$' + (it.cost || 0).toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;font-size:12px;color:#2d6a30">$' + (it.price || 0).toFixed(2) + '</td>' +
+        '<td style="text-align:center;font-size:11px;font-weight:600;color:#8B6914">' + gm + '%</td>' +
+        '<td style="text-align:center">' +
+          (!it.sold ? '<button onclick="markSalvageSold(' + it.id + ')" style="background:#eaf3de;color:#2d6a30;border:1px solid #c0dd97;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;margin:1px" title="Mark sold">✓</button>' : '') +
+          '<button onclick="editSalvageItem(' + it.id + ')" style="background:#eaf4fd;color:#2980d4;border:1px solid #b5d4f4;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;margin:1px" title="Edit">✏️</button>' +
+          '<button onclick="deleteSalvageItem(' + it.id + ')" style="background:#fff0f0;color:#c04040;border:1px solid #e08080;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;margin:1px" title="Delete">🗑️</button>' +
+        '</td></tr>';
+    }).join('');
+  }
+
+  // KPIs
+  var active = salvageItems.filter(function(i){return !i.sold;});
+  var sold = salvageItems.filter(function(i){return i.sold;});
+  var totalCost = active.reduce(function(s,i){return s + (i.cost||0) * (i.qty||1);}, 0);
+  var totalValue = active.reduce(function(s,i){return s + (i.price||0) * (i.qty||1);}, 0);
+  document.getElementById('salvage-kpis').innerHTML =
+    '<div class="kpi-card"><div class="kpi-label">Active Items</div><div class="kpi-value">' + active.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Total Cost</div><div class="kpi-value">$' + totalCost.toFixed(0) + '</div></div>' +
+    '<div class="kpi-card green"><div class="kpi-label">Total Value</div><div class="kpi-value">$' + totalValue.toFixed(0) + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Sold Items</div><div class="kpi-value">' + sold.length + '</div></div>';
+  document.getElementById('salvage-summary').textContent = salvageItems.length + ' items · ' + active.length + ' active';
+}
+
+function setSalvageFilter(cat, btn) {
+  salvageCatFilter = cat;
+  document.querySelectorAll('#salvage-pills .pill').forEach(function(p){p.className='pill off';});
+  btn.className = 'pill on';
+  renderSalvageList();
+}
+
+function saveSalvageData() {
+  localStorage.setItem('ns_salvage', JSON.stringify(salvageItems));
+}
+
+function openSalvageScanner() {
+  currentSalvagePhoto = null;
+  document.getElementById('salvage-cam-preview').style.display = 'none';
+  document.getElementById('salvage-cam-preview').innerHTML = '';
+  document.getElementById('salvage-cam-prompt').style.display = 'block';
+  document.getElementById('salvage-cam-input').value = '';
+  document.getElementById('salvage-ai-btn').disabled = true;
+  document.getElementById('salvage-ai-btn').style.background = '#ccc';
+  document.getElementById('salvage-ai-btn').style.cursor = 'not-allowed';
+  document.getElementById('salvage-ai-status').style.display = 'none';
+  document.getElementById('sv-desc').value = '';
+  document.getElementById('sv-cat').value = 'Doors';
+  document.getElementById('sv-cond').value = 'Good';
+  document.getElementById('sv-qty').value = 1;
+  document.getElementById('sv-cost').value = '';
+  document.getElementById('sv-price').value = '';
+  document.getElementById('sv-location').value = '';
+  document.getElementById('sv-notes').value = '';
+  document.getElementById('sv-gm-display').textContent = 'GM: —';
+  document.getElementById('salvage-scanner-modal').classList.remove('hidden');
+  document.getElementById('salvage-scanner-modal').dataset.editId = '';
+}
+
+function openSalvageManual() {
+  openSalvageScanner();
+  // Just opens same modal, user can skip photo
+}
+
+function closeSalvageScanner() {
+  document.getElementById('salvage-scanner-modal').classList.add('hidden');
+}
+
+function onSalvagePhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    currentSalvagePhoto = e.target.result;
+    document.getElementById('salvage-cam-preview').innerHTML = '<img src="' + currentSalvagePhoto + '" style="max-width:100%;max-height:200px;border-radius:8px;border:1.5px solid #d5c8a8">';
+    document.getElementById('salvage-cam-preview').style.display = 'block';
+    document.getElementById('salvage-cam-prompt').style.display = 'none';
+    // Enable AI button
+    var apiKey = localStorage.getItem('ns_salvage_apikey');
+    if (apiKey) {
+      document.getElementById('salvage-ai-btn').disabled = false;
+      document.getElementById('salvage-ai-btn').style.background = '#2980d4';
+      document.getElementById('salvage-ai-btn').style.cursor = 'pointer';
+    } else {
+      document.getElementById('salvage-ai-btn').disabled = false;
+      document.getElementById('salvage-ai-btn').style.background = '#c8952a';
+      document.getElementById('salvage-ai-btn').style.cursor = 'pointer';
+      document.getElementById('salvage-ai-btn').textContent = '🔑 Setup AI Key to Identify';
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function aiIdentifySalvage() {
+  var apiKey = localStorage.getItem('ns_salvage_apikey');
+  if (!apiKey) {
+    document.getElementById('salvage-apikey-modal').classList.remove('hidden');
+    return;
+  }
+  if (!currentSalvagePhoto) { alert('Take a photo first'); return; }
+
+  var statusEl = document.getElementById('salvage-ai-status');
+  var btn = document.getElementById('salvage-ai-btn');
+  btn.disabled = true;
+  btn.style.background = '#ccc';
+  btn.textContent = '⏳ Analyzing...';
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Sending photo to Claude AI for identification...';
+
+  var base64Data = currentSalvagePhoto.split(',')[1];
+  var mediaType = currentSalvagePhoto.split(';')[0].split(':')[1];
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 500,
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: base64Data }
+        }, {
+          type: 'text',
+          text: 'You are identifying a building material item for a building supply store (Norwood Supply in Jacksonville FL). Respond ONLY with a JSON object, no markdown, no backticks. Fields: description (string, brief product description), category (one of: Doors, Lumber, Millwork, Hardware, Plywood/Sheet, Misc), condition (one of: New, Good, Fair, Rough), estimatedRetail (number, estimated new retail value in dollars), suggestedPrice (number, suggested salvage sell price in dollars), notes (string, any relevant details about the item).'
+        }]
+      }]
+    })
+  }).then(function(r) { return r.json(); })
+  .then(function(data) {
+    var text = (data.content && data.content[0] && data.content[0].text) || '';
+    try {
+      var clean = text.replace(/```json|```/g, '').trim();
+      var result = JSON.parse(clean);
+      document.getElementById('sv-desc').value = result.description || '';
+      document.getElementById('sv-cat').value = result.category || 'Misc';
+      document.getElementById('sv-cond').value = result.condition || 'Good';
+      document.getElementById('sv-price').value = result.suggestedPrice || '';
+      document.getElementById('sv-cost').value = Math.round((result.suggestedPrice || 0) * 0.4) || '';
+      document.getElementById('sv-notes').value = result.notes || '';
+      updateSalvageGM();
+      statusEl.textContent = '✅ AI identified! Review and edit below.';
+      statusEl.style.color = '#2d6a30';
+    } catch(e) {
+      statusEl.textContent = '⚠️ Could not parse AI response. Enter details manually.';
+      statusEl.style.color = '#c04040';
+    }
+    btn.disabled = false;
+    btn.style.background = '#2980d4';
+    btn.style.cursor = 'pointer';
+    btn.textContent = '🤖 Identify & Price This Item';
+  }).catch(function(err) {
+    statusEl.textContent = '❌ Error: ' + err.message;
+    statusEl.style.color = '#c04040';
+    btn.disabled = false;
+    btn.style.background = '#2980d4';
+    btn.style.cursor = 'pointer';
+    btn.textContent = '🤖 Identify & Price This Item';
+  });
+}
+
+function saveSalvageAPIKey() {
+  var key = document.getElementById('sv-apikey-input').value.trim();
+  if (!key) return;
+  localStorage.setItem('ns_salvage_apikey', key);
+  document.getElementById('salvage-apikey-modal').classList.add('hidden');
+  // Now try AI identify
+  if (currentSalvagePhoto) {
+    document.getElementById('salvage-ai-btn').disabled = false;
+    document.getElementById('salvage-ai-btn').style.background = '#2980d4';
+    document.getElementById('salvage-ai-btn').style.cursor = 'pointer';
+    document.getElementById('salvage-ai-btn').textContent = '🤖 Identify & Price This Item';
+    aiIdentifySalvage();
+  }
+}
+
+function updateSalvageGM() {
+  var cost = parseFloat(document.getElementById('sv-cost').value) || 0;
+  var price = parseFloat(document.getElementById('sv-price').value) || 0;
+  var gm = price > 0 ? Math.round((1 - cost / price) * 100) : 0;
+  var color = gm >= 30 ? '#2d6a30' : gm >= 20 ? '#8B6914' : '#c04040';
+  document.getElementById('sv-gm-display').innerHTML = 'GM: <span style="color:' + color + '">' + gm + '%</span>';
+}
+
+function saveSalvageItem() {
+  var desc = document.getElementById('sv-desc').value.trim();
+  if (!desc) { alert('Enter a description'); return; }
+
+  var editId = document.getElementById('salvage-scanner-modal').dataset.editId;
+  var item;
+  if (editId) {
+    item = salvageItems.find(function(i){return i.id == editId;});
+    if (!item) return;
+  } else {
+    item = { id: Date.now(), dateAdded: new Date().toISOString().slice(0,10), sold: false };
+    salvageItems.unshift(item);
+  }
+
+  item.description = desc;
+  item.category = document.getElementById('sv-cat').value;
+  item.condition = document.getElementById('sv-cond').value;
+  item.qty = parseInt(document.getElementById('sv-qty').value) || 1;
+  item.cost = parseFloat(document.getElementById('sv-cost').value) || 0;
+  item.price = parseFloat(document.getElementById('sv-price').value) || 0;
+  item.location = document.getElementById('sv-location').value.trim();
+  item.notes = document.getElementById('sv-notes').value.trim();
+  if (currentSalvagePhoto && !editId) {
+    // Store a small thumbnail
+    var canvas = document.createElement('canvas');
+    var img = new Image();
+    img.onload = function() {
+      canvas.width = 80; canvas.height = 80;
+      var ctx = canvas.getContext('2d');
+      var s = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, 80, 80);
+      item.thumbnail = canvas.toDataURL('image/jpeg', 0.6);
+      saveSalvageData();
+    };
+    img.src = currentSalvagePhoto;
+  }
+
+  saveSalvageData();
+  renderSalvageList();
+  closeSalvageScanner();
+}
+
+function editSalvageItem(id) {
+  var item = salvageItems.find(function(i){return i.id === id;});
+  if (!item) return;
+  openSalvageScanner();
+  document.getElementById('salvage-scanner-modal').dataset.editId = id;
+  document.getElementById('sv-desc').value = item.description || '';
+  document.getElementById('sv-cat').value = item.category || 'Misc';
+  document.getElementById('sv-cond').value = item.condition || 'Good';
+  document.getElementById('sv-qty').value = item.qty || 1;
+  document.getElementById('sv-cost').value = item.cost || '';
+  document.getElementById('sv-price').value = item.price || '';
+  document.getElementById('sv-location').value = item.location || '';
+  document.getElementById('sv-notes').value = item.notes || '';
+  if (item.thumbnail) {
+    document.getElementById('salvage-cam-preview').innerHTML = '<img src="' + item.thumbnail + '" style="max-width:100%;max-height:200px;border-radius:8px">';
+    document.getElementById('salvage-cam-preview').style.display = 'block';
+    document.getElementById('salvage-cam-prompt').style.display = 'none';
+  }
+  updateSalvageGM();
+}
+
+function deleteSalvageItem(id) {
+  if (!confirm('Delete this salvage item?')) return;
+  salvageItems = salvageItems.filter(function(i){return i.id !== id;});
+  saveSalvageData();
+  renderSalvageList();
+}
+
+function markSalvageSold(id) {
+  var item = salvageItems.find(function(i){return i.id === id;});
+  if (!item) return;
+  item.sold = true;
+  item.dateSold = new Date().toISOString().slice(0,10);
+  saveSalvageData();
+  renderSalvageList();
+}
+
+function exportSalvageCSV() {
+  if (!salvageItems.length) { alert('No items to export'); return; }
+  var rows = [['Date','Description','Category','Condition','Qty','Cost','Price','GM%','Location','Status','Notes']];
+  salvageItems.forEach(function(it) {
+    var gm = it.price > 0 ? Math.round((1-it.cost/it.price)*100) : 0;
+    rows.push([it.dateAdded||'', (it.description||'').replace(/,/g,' '), it.category||'', it.condition||'', it.qty||1, (it.cost||0).toFixed(2), (it.price||0).toFixed(2), gm+'%', (it.location||'').replace(/,/g,' '), it.sold?'Sold':'Active', (it.notes||'').replace(/,/g,' ')]);
+  });
+  var csv = rows.map(function(r){return r.join(',');}).join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'NorwoodSalvage_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+// Init salvage on page load
+setTimeout(function(){ if(document.getElementById('salvage-tbody')) renderSalvageList(); }, 100);
+
 </script>
 <div id="img-lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out">
   <div style="position:relative;max-width:90vw;max-height:90vh" onclick="event.stopPropagation()">
